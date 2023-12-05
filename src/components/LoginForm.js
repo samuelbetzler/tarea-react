@@ -1,122 +1,113 @@
-/* eslint-disable */
 import React, { useState } from 'react';
-const RegistroForm = () => {
-  return (
-    <form className="hide">
-      <p>Registro</p>
-      <div className="form-outline mb-4">
-        <input type="text" className="form-control" required placeholder="Nombres" />
-        <label className="form-label" for="form2Example11">Nombres</label>
-      </div>
-      <div className="form-outline mb-4">
-        <input type="text" className="form-control" required placeholder="Apellidos" />
-        <label className="form-label" for="form2Example11">Apellidos</label>
-      </div>
-      <div className="form-outline mb-4">
-        <input type="email" className="form-control" id="correo" oninput="validarCorreo()" placeholder="Correo Institucional" />
-        <label className="form-label" for="form2Example11">Correo</label>
-        <p id="correoMensaje" className="text-danger text-center"></p>
-      </div>
-      <div className="form-outline mb-4">
-        <input type="password" id="Password" className="form-control" oninput="validarPassword()" />
-        <label className="form-label" for="form2Example22">Contraseña</label>
-        <p id="MensajePass" className="text-danger text-center"></p>
-      </div>
-      <div className="form-outline mb-4">
-        <input type="password" id="RepeatPassword" className="form-control" oninput="validarRepetirPassword()" />
-        <label className="form-label" for="form2Example22">Repita la contraseña</label>
-        <p id="MensajeConfirmacion" className="text-danger text-center"></p>
-      </div>
-      <div className="form-outline mb-4">
-        <input type="number" id="cedula" className="form-control" oninput="validarCedula()" />
-        <label className="form-label" for="form2Example22">Cedula</label>
-        <p id="MensajeCedula" className="text-danger text-center"></p>
-      </div>
-      <div className="text-center pt-1 mb-5 pb-1">
-        <button className="btn btn-primary btn-block fa-lg gradient-custom-2 mb-3" type="button">Registrarse</button>
-      </div>
-      <div className="d-flex align-items-center justify-content-center pb-4">
-        <p className="mb-0 me-2">Tienes cuenta</p>
-        <button type="button" className="btn btn-outline-danger" id="btnIniciarSesion">Inicia Sesión</button>
-      </div>
-    </form>
-  );
-}
+import Swal from 'sweetalert2';
+import RegistroForm from './RegistroForm';
 
-function toggleForms(setMostrarRegistro) {
-  setMostrarRegistro((prev) => !prev);
-}
+const LoginForm = ({ iniciarSesion, mostrarFormularioRecuperar }) => {
+  const [correo, setCorreo] = useState('');
+  const [contrasena, setContrasena] = useState('');
 
-function mostrarFormularioRecuperar() {
-  Swal.fire({
-    title: 'Recuperar Contraseña',
-    html: `
-      <input type="email" id="correoRecuperar" class="swal2-input" placeholder="Correo para recuperar contraseña">
-      <p id="correoMensaje" class="text-danger text-center"></p>
-    `,
-    showCancelButton: true,
-    confirmButtonText: 'Recuperar',
-    preConfirm: () => {
-      const correoInput = Swal.getPopup().querySelector('#correoRecuperar');
-      const correo = correoInput.value;
-      const correoMensaje = Swal.getPopup().querySelector('#correoMensaje');
-      const correoPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+  const handleIniciarSesion = () => {
+    // Verificar si el usuario está registrado
+    const usuarioRegistrado = JSON.parse(localStorage.getItem('nuevoUsuario'));
 
-      if (!correoPattern.test(correo)) {
-        correoMensaje.textContent = 'Correo no válido';
-        correoInput.classList.add('is-invalid');
-        Swal.showValidationMessage('Por favor ingresa un correo válido.');
-        return false;
+    if (usuarioRegistrado && usuarioRegistrado.correo === correo && usuarioRegistrado.contrasena === contrasena) {
+      iniciarSesion(correo, contrasena);
+      // Guardar la información en localStorage
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('userEmail', correo);
+    } else {
+      // Mostrar mensaje de error
+      Swal.fire({
+        icon: 'error',
+        title: 'Error de autenticación',
+        text: 'Correo o contraseña incorrectos. Por favor, inténtalo de nuevo.',
+      });
+    }
+  };
+  const handleMostrarFormularioRecuperar = () => {
+    Swal.mixin({
+      input: 'email',
+      confirmButtonText: 'Recuperar',
+      showCancelButton: true,
+      cancelButtonText: 'Cancelar',
+      preConfirm: (correoRecuperar) => {
+        // Validación del correo electrónico
+        const correoPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}/;
+  
+        if (!correoPattern.test(correoRecuperar)) {
+          Swal.showValidationMessage('Por favor ingresa un correo válido.');
+          return false;
+        }
+  
+        return correoRecuperar;
+      },
+    }).queue([
+      {
+        title: 'Recuperar Contraseña',
+        text: 'Por favor ingresa tu correo para recuperar la contraseña',
+      },
+    ]).then((result) => {
+      if (result.value) {
+        const correo = result.value[0];
+        Swal.fire(
+          'Mensaje Enviado',
+          `Se enviará un mensaje a ${correo} con instrucciones para recuperar tu contraseña.`,
+          'success'
+        );
       }
-
-      return correo;
-    }
-  }).then((result) => {
-    if (result.isConfirmed) {
-      const correo = result.value;
-      Swal.fire('Mensaje Enviado', `Se enviará un mensaje a ${correo} con instrucciones para recuperar tu contraseña.`, 'success');
-    }
-  });
-}
-
-function iniciarSesion(setMostrarRegistro) {
-  toggleForms(setMostrarRegistro);
-}
-
-const LoginForm = () => {
-  const [mostrarRegistro, setMostrarRegistro] = useState(false);
+    });
+  };
+  const [registroExitoso, setRegistroExitoso] = useState(false);
+  
+  
 
   return (
     <div>
       <form>
         <p>Por favor inicia sesión con tu cuenta</p>
         <div className="form-outline mb-4">
-          <input type="email" className="form-control" placeholder="Correo Institucional" />
+          <input
+            type="email"
+            className="form-control"
+            placeholder="Correo Institucional"
+            value={correo}
+            onChange={(e) => setCorreo(e.target.value)}
+          />
           <label className="form-label" htmlFor="form2Example11">
             Correo
           </label>
         </div>
 
         <div className="form-outline mb-4">
-          <input type="password" className="form-control" placeholder="Contraseña" />
+          <input
+            type="password"
+            className="form-control"
+            placeholder="Contraseña"
+            value={contrasena}
+            onChange={(e) => setContrasena(e.target.value)}
+          />
           <label className="form-label" htmlFor="form2Example22">
             Contraseña
           </label>
         </div>
 
         <div className="text-center pt-1 mb-5 pb-1">
-          <button className="btn btn-primary btn-block fa-lg gradient-custom-2 mb-3" type="button" onClick={() => iniciarSesion(setMostrarRegistro)}>
+          <button
+            className="btn btn-primary btn-block fa-lg gradient-custom-2 mb-3"
+            type="button"
+            onClick={handleIniciarSesion}
+          >
+
             Iniciar Sesión
           </button>
-          <a className="text-muted" href="#!" onClick={mostrarFormularioRecuperar}>
+          <a className="text-muted" href="#!" onClick={handleMostrarFormularioRecuperar}>
             ¿Olvidaste tu contraseña?
           </a>
         </div>
       </form>
-
-      {mostrarRegistro && <RegistroForm />}
+      
     </div>
   );
-}
+};
 
 export default LoginForm;
