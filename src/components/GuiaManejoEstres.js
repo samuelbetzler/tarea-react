@@ -15,7 +15,7 @@ const GuiaManejoEstres = () => {
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Departamento de Bienestar Universitario</title>
-        <link rel="icon" url(${process.env.PUBLIC_URL}/LOGO-ULEAM-HORIZONTAL.png)` type="image/x-icon" />
+        <link rel="icon" href="/LOGO-ULEAM-HORIZONTAL.png" type="image/x-icon" />
       </head>
       <body style={{ backgroundImage: 'url("/Img/LOGO-ULEAM-HORIZONTAL.png")', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', height: '100vh' }}>
         <div className="container-fluid">
